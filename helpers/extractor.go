@@ -790,7 +790,7 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 		reportobj := ExtractCompanyCibilReport(PathTo, XmlName)
 
 		filename := strings.TrimRight(FName, ".pdf")
-		timestamp := time.Now().UTC()
+		timestamp := time.Now().UTC().Add(time.Duration(5.5*60) * time.Minute)
 		datestr := timestamp.String()
 		dates := strings.Split(datestr, " ")
 		times := strings.Split(dates[1], ".")
@@ -914,7 +914,7 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 		reportobj := ExtractIndividualCibilReport(PathTo, XmlName)
 
 		filename := strings.TrimRight(FName, ".pdf")
-		timestamp := time.Now().UTC()
+		timestamp := time.Now().UTC().Add(time.Duration(5.5*60) * time.Minute)
 		datestr := timestamp.String()
 		dates := strings.Split(datestr, " ")
 		times := strings.Split(dates[1], ".")
@@ -922,7 +922,25 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 		os.Rename(inbox+"/"+FName, inbox+"/"+newfilename)
 		formattedName := strings.Replace(newfilename, " ", "\\ ", -1)
 
-		if reportobj.CibilScore == 0 {
+		exsfilter := []*dbox.Filter{}
+		exsfilter = append(exsfilter, dbox.Eq("ConsumerInfo.ConsumerName", reportobj.ConsumersInfos.ConsumerName))
+		exsfilter = append(exsfilter, dbox.Eq("DateOfReport", reportobj.DateOfReport))
+		exsfilter = append(exsfilter, dbox.Eq("TimeOfReport", reportobj.TimeOfReport))
+		exsfilter = append(exsfilter, dbox.Eq("CibilScore", reportobj.CibilScore))
+		existdatarep := []tk.M{}
+
+		csr, err := conn.NewQuery().Select().From("CibilReportPromotorFinal").Where(exsfilter...).Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		err = csr.Fetch(&existdatarep, 0, false)
+		defer csr.Close()
+
+		if len(existdatarep) > 0 {
+			MoveFile(inbox+"/"+formattedName, failed)
+			os.RemoveAll(PathFrom + "/" + XmlName)
+			tk.Println("Data Existed")
+		} else if reportobj.CibilScore == 0 {
 			MoveFile(inbox+"/"+formattedName, failed)
 			os.RemoveAll(PathFrom + "/" + XmlName)
 		} else {
