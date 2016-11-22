@@ -15,7 +15,7 @@ func MoveFile(From string, To string) {
 	args0 := strings.Join(args, " ")
 
 	if err := exec.Command("/bin/sh", "-c", args0).Run(); err != nil {
-		tk.Printf("Error: %#v\n", err.Error())
+		tk.Printf("Error Move File \n")
 	}
 }
 
@@ -24,7 +24,7 @@ func CopyFile(From string, To string) {
 	args0 := strings.Join(args, " ")
 
 	if err := exec.Command("/bin/sh", "-c", args0).Run(); err != nil {
-		tk.Printf("Error: %#v\n", err.Error())
+		tk.Printf("Error Copy File \n")
 	}
 }
 

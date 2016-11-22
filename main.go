@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "eaciit/x10consoleapps/x10upload/helpers"
+	. "eaciit/x10upload/helpers"
 	"strings"
 
 	"time"
