@@ -22,6 +22,7 @@ type ReportData struct {
 	ReportType               string            `bson:"ReportType"`
 	StatusCibil              int               `bson:"StatusCibil"`
 	IsMatch                  bool              `bson:"IsMatch"`
+	UnconfirmID              string            `bson:"UnconfirmID"`
 	ConsumersInfos           ConsumerInfo      `bson:"ConsumerInfo"`
 	DateOfReport             time.Time         `bson:"DateOfReport"`
 	TimeOfReport             time.Time         `bson:"TimeOfReport"`

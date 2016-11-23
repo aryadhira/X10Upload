@@ -87,6 +87,7 @@ type CibilReportModel struct {
 	FileName          string                `bson:"FileName"`
 	ReportType        string                `bson:"ReportType"`
 	IsMatch           bool                  `bson:"IsMatch"`
+	UnconfirmID       string                `bson:"UnconfirmID"`
 	Profile           Profile               `bson:"Profile"`
 	ReportSummary     ReportSummary         `bson:"ReportSummary"`
 	Detail            []ReportSummaryDetail `bson:"DetailReportSummary"`
