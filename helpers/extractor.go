@@ -798,6 +798,22 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 		os.Rename(inbox+"/"+FName, inbox+"/"+newfilename)
 		formattedName := strings.Replace(newfilename, " ", "\\ ", -1)
 
+		// exsfilter := []*dbox.Filter{}
+		// exsfilter = append(exsfilter, dbox.Eq("Profile.companyname", reportobj.Profile.CompanyName))
+		// existdatarep := []tk.M{}
+
+		// csr, err := conn.NewQuery().Select().From("CibilReport").Where(exsfilter...).Cursor(nil)
+		// if err != nil {
+		// 	tk.Println(err.Error())
+		// }
+		// err = csr.Fetch(&existdatarep, 0, false)
+		// defer csr.Close()
+
+		// if len(existdatarep) > 0 {
+		// 	tk.Println("Data Existed")
+		// 	MoveFile(inbox+"/"+formattedName, failed)
+		// 	os.RemoveAll(PathFrom + "/" + XmlName)
+		// } else
 		if reportobj.Profile.CompanyName == "" {
 			tk.Println("Undefined Company Name")
 			MoveFile(inbox+"/"+formattedName, failed)
@@ -861,13 +877,53 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 					} else if similar >= 70 {
 						isMatch = true
 					}
+
+					if isMatch {
+						if cpstatus == 1 {
+							reportobj.Id = bson.NewObjectId()
+							reportobj.Profile.CustomerId = customerid
+							reportobj.Profile.DealNo = dealno
+							reportobj.FilePath = PathFrom + "/" + FName
+							reportobj.FileName = newfilename
+							reportobj.IsMatch = isMatch
+							reportobj.UnconfirmID = ""
+							query := conn.NewQuery().From("CibilReport").Save()
+							err = query.Exec(tk.M{
+								"data": reportobj,
+							})
+							if err != nil {
+								tk.Println(err.Error())
+							}
+							query.Close()
+						} else {
+							reportobj.Id = bson.NewObjectId()
+							reportobj.Profile.CustomerId = 0
+							reportobj.Profile.DealNo = ""
+							reportobj.FilePath = PathFrom + "/" + FName
+							reportobj.FileName = newfilename
+							reportobj.IsMatch = false
+							custid := strconv.Itoa(customerid)
+							reportobj.UnconfirmID = custid + "_" + dealno
+							query := conn.NewQuery().From("CibilReport").Save()
+							err = query.Exec(tk.M{
+								"data": reportobj,
+							})
+							if err != nil {
+								tk.Println(err.Error())
+							}
+							query.Close()
+						}
+					}
 				}
 			} else {
 				tk.Println("else")
 				reportobj.Id = bson.NewObjectId()
+				reportobj.Profile.CustomerId = 0
+				reportobj.Profile.DealNo = ""
 				reportobj.FilePath = PathFrom + "/" + FName
 				reportobj.FileName = newfilename
 				reportobj.IsMatch = isMatch
+				reportobj.UnconfirmID = ""
 				query := conn.NewQuery().From("CibilReport").Save()
 				err = query.Exec(tk.M{
 					"data": reportobj,
@@ -877,50 +933,11 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 				}
 				query.Close()
 
-				os.RemoveAll(PathFrom + "/" + XmlName)
-				CopyFile(inbox+"/"+formattedName, webapps)
-				MoveFile(inbox+"/"+formattedName, success)
 			}
 
-			if isMatch {
-				if cpstatus == 1 {
-					reportobj.Id = bson.NewObjectId()
-					reportobj.Profile.CustomerId = customerid
-					reportobj.Profile.DealNo = dealno
-					reportobj.FilePath = PathFrom + "/" + FName
-					reportobj.FileName = newfilename
-					reportobj.IsMatch = isMatch
-					query := conn.NewQuery().From("CibilReport").Save()
-					err = query.Exec(tk.M{
-						"data": reportobj,
-					})
-					if err != nil {
-						tk.Println(err.Error())
-					}
-					query.Close()
-				} else {
-					reportobj.Id = bson.NewObjectId()
-					reportobj.FilePath = PathFrom + "/" + FName
-					reportobj.FileName = newfilename
-					reportobj.IsMatch = false
-					custid := strconv.Itoa(customerid)
-					reportobj.UnconfirmID = custid + "_" + dealno
-					query := conn.NewQuery().From("CibilReport").Save()
-					err = query.Exec(tk.M{
-						"data": reportobj,
-					})
-					if err != nil {
-						tk.Println(err.Error())
-					}
-					query.Close()
-				}
-				os.RemoveAll(PathFrom + "/" + XmlName)
-				CopyFile(inbox+"/"+formattedName, webapps)
-				MoveFile(inbox+"/"+formattedName, success)
-			} else {
-				os.RemoveAll(PathFrom + "/" + XmlName)
-				MoveFile(inbox+"/"+formattedName, success)
-			}
+			os.RemoveAll(PathFrom + "/" + XmlName)
+			CopyFile(inbox+"/"+formattedName, webapps)
+			MoveFile(inbox+"/"+formattedName, success)
 		}
 	}
 
@@ -1188,26 +1205,39 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 				}
 			}
 
-			// if isMatch == false {
-			// 	tk.Println("PDF Unmatch")
-			// 	reportobj.Id = bson.NewObjectId()
-			// 	reportobj.ConsumersInfos.CustomerId = 0
-			// 	reportobj.ConsumersInfos.DealNo = ""
-			// 	reportobj.FilePath = PathFrom + "/" + FName
-			// 	reportobj.FileName = newfilename
-			// 	reportobj.StatusCibil = 0
-			// 	reportobj.IsMatch = false
-			// 	reportobj.UnconfirmID = ""
-			// 	query := conn.NewQuery().From("CibilReportPromotorFinal").Save()
-			// 	err = query.Exec(tk.M{
-			// 		"data": reportobj,
-			// 	})
-			// 	if err != nil {
-			// 		tk.Println(err.Error())
-			// 	}
-			// 	query.Close()
+			if isMatch == false {
+				tk.Println("PDF Unmatch")
 
-			// }
+				filter := []*dbox.Filter{}
+				filter = append(filter, dbox.Eq("ConsumerInfo.ConsumerName", reportobj.ConsumersInfos.ConsumerName))
+				cursor, err = conn.NewQuery().Select().From("CibilReportPromotorFinal").Where(filter...).Cursor(nil)
+				if err != nil {
+					tk.Println(err.Error())
+				}
+				result := []tk.M{}
+
+				err = cursor.Fetch(&result, 0, false)
+
+				if len(result) == 0 {
+					reportobj.Id = bson.NewObjectId()
+					reportobj.ConsumersInfos.CustomerId = 0
+					reportobj.ConsumersInfos.DealNo = ""
+					reportobj.FilePath = PathFrom + "/" + FName
+					reportobj.FileName = newfilename
+					reportobj.StatusCibil = 0
+					reportobj.IsMatch = false
+					reportobj.UnconfirmID = ""
+					query := conn.NewQuery().From("CibilReportPromotorFinal").Save()
+					err = query.Exec(tk.M{
+						"data": reportobj,
+					})
+					if err != nil {
+						tk.Println(err.Error())
+					}
+					query.Close()
+				}
+
+			}
 			os.RemoveAll(PathFrom + "/" + XmlName)
 			CopyFile(inbox+"/"+formattedName, webapps)
 			MoveFile(inbox+"/"+formattedName, success)
