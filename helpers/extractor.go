@@ -788,7 +788,6 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 
 	if ReportType == "Company" {
 		reportobj := ExtractCompanyCibilReport(PathTo, XmlName)
-		time.Sleep(3 * time.Second)
 		tk.Println(reportobj.Profile)
 		filename := strings.TrimRight(FName, ".pdf")
 		timestamp := time.Now().UTC().Add(time.Duration(5.5*60) * time.Minute)
@@ -799,26 +798,10 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 		os.Rename(inbox+"/"+FName, inbox+"/"+newfilename)
 		formattedName := strings.Replace(newfilename, " ", "\\ ", -1)
 
-		// exsfilter := []*dbox.Filter{}
-		// exsfilter = append(exsfilter, dbox.Eq("Profile.companyname", reportobj.Profile.CompanyName))
-		// existdatarep := []tk.M{}
-
-		// csr, err := conn.NewQuery().Select().From("CibilReport").Where(exsfilter...).Cursor(nil)
-		// if err != nil {
-		// 	tk.Println(err.Error())
-		// }
-		// err = csr.Fetch(&existdatarep, 0, false)
-		// defer csr.Close()
-
-		// if len(existdatarep) > 0 {
-		// 	tk.Println("Data Existed")
-		// 	MoveFile(inbox+"/"+formattedName, failed)
-		// 	os.RemoveAll(PathFrom + "/" + XmlName)
-		// } else
 		if reportobj.Profile.CompanyName == "" {
 			tk.Println("Undefined Company Name")
 			MoveFile(inbox+"/"+formattedName, failed)
-			os.RemoveAll(PathFrom + "/" + XmlName)
+			//os.RemoveAll(PathFrom + "/" + XmlName)
 		} else {
 			customer := strings.Split(reportobj.Profile.CompanyName, " ")
 			res := []tk.M{}
