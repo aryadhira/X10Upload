@@ -788,6 +788,7 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 
 	if ReportType == "Company" {
 		reportobj := ExtractCompanyCibilReport(PathTo, XmlName)
+		time.Sleep(3 * time.Second)
 		tk.Println(reportobj.Profile)
 		filename := strings.TrimRight(FName, ".pdf")
 		timestamp := time.Now().UTC().Add(time.Duration(5.5*60) * time.Minute)
