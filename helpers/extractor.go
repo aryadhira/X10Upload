@@ -801,7 +801,7 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 		if reportobj.Profile.CompanyName == "" {
 			tk.Println("Undefined Company Name")
 			MoveFile(inbox+"/"+formattedName, failed)
-			//os.RemoveAll(PathFrom + "/" + XmlName)
+			os.RemoveAll(PathFrom + "/" + XmlName)
 		} else {
 			customer := strings.Split(reportobj.Profile.CompanyName, " ")
 			res := []tk.M{}

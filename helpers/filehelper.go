@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"time"
+
 	tk "github.com/eaciit/toolkit"
 )
 
@@ -39,6 +41,7 @@ func ProcessFile(inbox string, process string, failed string, success string, re
 	if len(inboxfolder) > 0 {
 		for _, f := range inboxfolder {
 			err := ConvertPdfToXml(inbox, process, f.Name())
+			time.Sleep(1500 * time.Millisecond)
 			if err != nil {
 				tk.Println(err.Error())
 			}
