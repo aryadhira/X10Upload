@@ -788,7 +788,7 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 
 	if ReportType == "Company" {
 		reportobj := ExtractCompanyCibilReport(PathTo, XmlName)
-
+		tk.Println(reportobj.Profile)
 		filename := strings.TrimRight(FName, ".pdf")
 		timestamp := time.Now().UTC().Add(time.Duration(5.5*60) * time.Minute)
 		datestr := timestamp.String()
@@ -1013,6 +1013,8 @@ func ExtractPdfDataCibilReport(PathFrom string, PathTo string, FName string, Rep
 						setting.SplitDelimeters = []rune{' ', '.', '-'}
 						similar := Similarity(reportobj.ConsumersInfos.ConsumerName, data.GetString("Name"), setting)
 						dob, isdate := data.Get("DateOfBirth").(time.Time)
+
+						tk.Println(similar)
 
 						if isdate {
 							if similar >= 50 && reportobj.ConsumersInfos.DateOfBirth == dob.UTC() {
